@@ -1,0 +1,227 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plot
+import seaborn as sn
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import VotingClassifier
+from sklearn import model_selection
+from sklearn.metrics import confusion_matrix
+from sklearn. preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+
+data = pd.read_csv('heart.csv')
+data.head()
+
+data.shape
+data.columns.to_list()
+data.describe()
+data.info()
+data.isnull().sum()
+
+plot.figure(figsize=(20,10))
+sn.heatmap(data.corr(),annot=True,cmap='terrain')
+
+sn.pairplot(data=data)
+data.hist(figsize=(12,12),layout=(5,3))
+
+sn.catplot(data=data, x='sex', y='age',  hue='target', palette='husl')
+
+sn.barplot(data=data, x='sex', y='chol', hue='target', palette='spring')
+
+sn.countplot(x='sex', data=data, palette='husl', hue='target')
+
+sn.countplot(x='target',palette='BuGn', data=data)
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+StandardScaler = StandardScaler()  
+columns_to_scale = ['age','trestbps','chol','thalach','oldpeak']
+data[columns_to_scale] = StandardScaler.fit_transform(data[columns_to_scale])
+
+X= data.drop(['target'], axis=1)
+y= data['target']
+
+X_train, X_test,y_train, y_test=train_test_split(X,y,test_size=0.3,random_state=40)
+
+print('X_train-', X_train.size)
+print('X_test-',X_test.size)
+print('y_train-', y_train.size)
+print('y_test-', y_test.size)
+
+model1 = LogisticRegression()
+model2 = DecisionTreeClassifier(max_depth = 2)
+model3 = SVC()
+model4 = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
+model5 = GaussianNB()
+
+#Training the machine learning models
+model1.fit(X_train, y_train)
+model2.fit(X_train, y_train)
+model3.fit(X_train, y_train)
+model4.fit(X_train, y_train)
+model5.fit(X_train, y_train)
+
+#Making the prediction
+y_pred1 = model1.predict(X_test)
+y_pred2 = model2.predict(X_test)
+y_pred3 = model3.predict(X_test)
+y_pred4 = model4.predict(X_test)
+y_pred5 = model5.predict(X_test)
+
+#Confusion matrix
+cm_LogisticRegression = confusion_matrix(y_test, y_pred1)
+cm_DecisionTree = confusion_matrix(y_test, y_pred2)
+cm_SupportVectorClass = confusion_matrix(y_test, y_pred3)
+cm_KNN = confusion_matrix(y_test, y_pred4)
+cm_NaiveBayes = confusion_matrix(y_test, y_pred5)
+
+kfold = model_selection.KFold(n_splits=10, random_state = 0,shuffle=True)
+result1 = model_selection.cross_val_score(model1, X_train, y_train, cv=kfold)
+result2 = model_selection.cross_val_score(model2, X_train, y_train, cv=kfold)
+result3 = model_selection.cross_val_score(model3, X_train, y_train, cv=kfold)
+result4 = model_selection.cross_val_score(model4, X_train, y_train, cv=kfold)
+result5 = model_selection.cross_val_score(model5, X_train, y_train, cv=kfold)
+
+#Printing the accuracies achieved in cross-validation
+print('Accuracy of Logistic Regression Model = ',result1.mean())
+print('Accuracy of Decision Tree Model = ',result2.mean())
+print('Accuracy of Support Vector Machine = ',result3.mean())
+print('Accuracy of k-NN Model = ',result4.mean())
+print('Accuracy of Naive Bayes Model = ',result5.mean())
+
+#Defining Hybrid Ensemble Learning Model
+# create the sub-models
+estimators = []
+
+#Defining 5 Logistic Regression Models
+model11 = LogisticRegression(penalty = 'l2', random_state = 0)
+estimators.append(('logistic1', model11))
+model12 = LogisticRegression(penalty = 'l2', random_state = 0)
+estimators.append(('logistic2', model12))
+model13 = LogisticRegression(penalty = 'l2', random_state = 0)
+estimators.append(('logistic3', model13))
+model14 = LogisticRegression(penalty = 'l2', random_state = 0)
+estimators.append(('logistic4', model14))
+model15 = LogisticRegression(penalty = 'l2', random_state = 0)
+estimators.append(('logistic5', model15))
+
+#Defining 5 Decision Tree Classifiers
+model16 = DecisionTreeClassifier(max_depth = 3)
+estimators.append(('cart1', model16))
+model17 = DecisionTreeClassifier(max_depth = 4)
+estimators.append(('cart2', model17))
+model18 = DecisionTreeClassifier(max_depth = 5)
+estimators.append(('cart3', model18))
+model19 = DecisionTreeClassifier(max_depth = 2)
+estimators.append(('cart4', model19))
+model20 = DecisionTreeClassifier(max_depth = 3)
+estimators.append(('cart5', model20))
+
+#Defining 5 Support Vector Classifiers
+model21 = SVC(kernel = 'linear')
+estimators.append(('svm1', model21))
+model22 = SVC(kernel = 'poly')
+estimators.append(('svm2', model22))
+model23 = SVC(kernel = 'rbf')
+estimators.append(('svm3', model23))
+model24 = SVC(kernel = 'rbf')
+estimators.append(('svm4', model24))
+model25 = SVC(kernel = 'linear')
+estimators.append(('svm5', model25))
+
+#Defining 5 K-NN classifiers
+model26 = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
+estimators.append(('knn1', model26))
+model27 = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 2)
+estimators.append(('knn2', model27))
+model28 = KNeighborsClassifier(n_neighbors = 6, metric = 'minkowski', p = 2)
+estimators.append(('knn3', model28))
+model29 = KNeighborsClassifier(n_neighbors = 4, metric = 'minkowski', p = 1)
+estimators.append(('knn4', model29))
+model30 = KNeighborsClassifier(n_neighbors = 5, metric = 'minkowski', p = 1)
+estimators.append(('knn5', model30))
+
+#Defining 5 Naive Bayes classifiers
+model31 = GaussianNB()
+estimators.append(('nbs1', model31))
+model32 = GaussianNB()
+estimators.append(('nbs2', model32))
+model33 = GaussianNB()
+estimators.append(('nbs3', model33))
+model34 = GaussianNB()
+estimators.append(('nbs4', model34))
+model35 = GaussianNB()
+estimators.append(('nbs5', model35))
+
+# Defining the ensemble model
+ensemble = VotingClassifier(estimators)
+ensemble.fit(X_train, y_train)
+y_pred = ensemble.predict(X_test)
+
+#Confisuin matrix
+cm_HybridEnsembler = confusion_matrix(y_test, y_pred)
+
+#Cross-Validation
+seed = 7
+kfold = model_selection.KFold(n_splits=10, random_state=seed,shuffle=True)
+results = model_selection.cross_val_score(ensemble, X_train, y_train, cv=kfold)
+print(results.mean())
+
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense,Dropout
+
+#Creating a pipeline
+model = Sequential()
+
+#1st hidden layer with input layer
+model.add(Dense(units=145,activation="relu",input_dim=13))
+
+#2nd hidden layer
+model.add(Dense(units=120,activation="relu",))
+
+#3rd hidden layer
+model.add(Dense(units=70,activation="relu",))
+
+#output layer
+model.add(Dense(units=1,activation="sigmoid"))
+
+model.summary()
+model.compile(optimizer="adam",loss="binary_crossentropy",metrics=["accuracy"])
+model_his=model.fit(X_train,y_train,validation_split=0.30, batch_size=55,epochs=150,verbose=1)
+
+y_pred=model.predict(X_test)
+y_pred
+
+classifiers = Sequential()
+#Adding the input layer and the first hidden layer
+classifiers.add(Dense(units = 8, kernel_initializer = 'uniform', activation = 'relu', input_dim = 13))
+#Adding the second hidden layer
+classifiers.add(Dense(units = 8, kernel_initializer = 'uniform', activation = 'relu'))
+#Adding the third hidden layer
+classifiers.add(Dense(units = 8, kernel_initializer = 'uniform', activation = 'relu'))
+#Adding the output layer
+classifiers.add(Dense(units = 1, kernel_initializer = 'uniform', activation = 'sigmoid'))
+
+classifiers.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+classifiers.fit(X_train, y_train, batch_size = 30, epochs = 200)
+
+
+from sklearn.metrics import (accuracy_score,
+                           confusion_matrix, classification_report)
+
+plot.figure(figsize = (10,3))
+pred = np.argmax(model.predict(X_test),axis = 1)
+classes = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 'thalach',
+       'exang', 'oldpeak', 'slope', 'ca', 'thal']
+
+mat = confusion_matrix(np.add(pred, 1), np.add(np.argmax(y_test, 1), 1))
+
+df_cm = pd.DataFrame(mat, index = classes, columns = classes)
+
+sn.heatmap(df_cm, annot=True, fmt='d')
+
+plot.show()
